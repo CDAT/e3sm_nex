@@ -5,7 +5,7 @@ import vcs
 import cdp
 import sys
 import os
-import e3smnex
+import e3sm_nex
 import cdms2
 import warnings
 import numpy
@@ -110,13 +110,13 @@ if genGrid: # We need to generate the grid
         lons = f(P.lons_variable).filled()
 
     print("Generating Mesh please be patient")
-    grid = e3smnex.generateGrid(ec, lats, lons)
+    grid = e3sm_nex.generateGrid(ec, lats, lons)
 
     print("Mesh generated storing as {} in {}".format(P.mesh_variable, P.mesh))
     axes = data.getAxisList()
     with cdms2.open(P.mesh,"w") as f:
         mesh = numpy.zeros(grid.shape)
-        mesh = e3smnex.applyGrid(mesh,grid)
+        mesh = e3sm_nex.applyGrid(mesh,grid)
         f.write(mesh,id=P.mesh_variable)
 
 if P.output is None:  # We need to make up a name
@@ -124,7 +124,7 @@ if P.output is None:  # We need to make up a name
 else:
     output_name = P.output
 if P.output_type == "nc":
-    data = e3smnex.applyGrid(data(),grid)
+    data = e3sm_nex.applyGrid(data(),grid)
     with cdms2.open(output_name,"w"):
         cdms2.write(data)
 
@@ -176,7 +176,7 @@ while user_key is not "q":
     plot_data = data(**kw)
     while len(plot_data.shape)>1:
         plot_data = plot_data[0]
-    e3smnex.applyGrid(plot_data,grid)
+    e3sm_nex.applyGrid(plot_data,grid)
     x.clear()
     x.plot(plot_data,gm)
     if P.output_type in ["png","postscript","pdf"]:
@@ -247,7 +247,7 @@ while user_key is not "q":
             elif typ == "s":
                 x.postscript(dump_name,width=width,height=height,units="pixel")
             elif typ == "n":
-                data2 = e3smnex.applyGrid(data(),grid)
+                data2 = e3sm_nex.applyGrid(data(),grid)
                 with cdms2.open(dump_name,"w") as f:
                     f.write(data2,id=data.id)
         elif user_key == "i":

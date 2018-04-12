@@ -14,7 +14,7 @@ for filename in ["e3sm_mesh_ne120.nc","e3sm_mesh_ne30.nc"]:
 
 Version="0.0.1"
 
-setup (name = "e3smnex",
+setup (name = "e3sm_nex",
        author="AIMS Team",
        version=Version,
        description = "Utilities for E3SM NEx grids",
