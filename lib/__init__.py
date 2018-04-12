@@ -1,1 +1,1 @@
-from core import generateGrid, applyGrid  # noqa
+from api import generateGrid, applyGrid  # noqa
