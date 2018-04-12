@@ -20,7 +20,8 @@ requirements:
     - vcs
 
 about:
-    home:  http://gitub.com/UV-CDAT/cdutil
+    home:  http://gitub.com/cdat/e3sm_nex
+    summary: A set of tools to use E3SM native grids
 
 
 
