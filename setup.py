@@ -2,7 +2,8 @@ from distutils.core import setup
 import os, requests
 if not os.path.exists("share"):
     os.makedirs("share")
-for filename in ["e3sm_mesh_ne120.nc","e3sm_mesh_ne30.nc"]:
+filenames = ["e3sm_mesh_ne120.nc","e3sm_mesh_ne30.nc"]
+for filename in filenames:
     filepth = os.path.join("share",filename)
     if not os.path.exists(filepth):
         r = requests.get("https://cdat.llnl.gov/cdat/sample_data/{}".format(filename),stream=True)

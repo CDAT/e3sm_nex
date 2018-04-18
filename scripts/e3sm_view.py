@@ -34,10 +34,13 @@ parser.add_argument("-M", "--mesh",help="mesh file either for input or for file 
 parser.add_argument("-m", "--mesh_variable", default="mesh", help="variable containing mesh (in mesh file)")
 parser.add_argument("-v","--variable",help="variable to view")
 parser.add_argument("-i","--input_file",help="file containing variable to view")
-parser.add_argument("-g", "--grid",help="e3sm grid file")
-parser.add_argument("-e", "--element_corners",default="element_corners", help="variable containing element_corners in e3sm grid file")
-parser.add_argument("-l", "--lats_variable",default="lat", help="variable containing latitudes in e3sm grid file")
-parser.add_argument("-L", "--lons_variable",default="lon", help="variable containing longitudes in e3sm grid file")
+parser.add_argument("-g", "--grid",help="e3sm grid file", default=None)
+parser.add_argument("--grid_type", choices=("nex","mpas"), help="Grid file type nex (nex-like i.e element_corners) or mpas (mpas like grid_corners)", default=None)
+parser.add_argument("-e", "--element_corners",default=None, help="variable containing element_corners in grid file")
+parser.add_argument("--longitude_corners",default=None, help="variable containing longitude corners in grid file")
+parser.add_argument("--latitude_corners",default=None, help="variable containing latitude corners in grid file")
+parser.add_argument("-l", "--lats_variable",default=None, help="variable containing latitudes in grid file")
+parser.add_argument("-L", "--lons_variable",default=None, help="variable containing longitudes in grid file")
 parser.add_argument("--lon1",help="first longitude",default=0.)
 parser.add_argument("--lon2",help="last longitude",default=360.)
 parser.add_argument("--lat1",help="first latitude",default=-90.)
@@ -45,12 +48,14 @@ parser.add_argument("--lat2",help="last latitude",default=90.)
 parser.add_argument("--time_index", help="time index to plot",default=0)
 parser.add_argument("--level_index", help="leve index to plot",default=0)
 parser.add_argument("--show_mesh", help="draw the mesh on plot", action="store_true", default=False)
+parser.add_argument("--missing_color", help="color of missing values on plot", action="store_true", default="lightgrey")
 parser.add_argument("--levels",default=None,help="levels to use",type=ast.literal_eval)
 parser.add_argument("--colors",default=None,help="color indices to use",type=ast.literal_eval)
 parser.add_argument("--output_type",help="output type",choices=("screen","s","png","pdf","postscript","nc"), default="screen")
 parser.add_argument("--output",help="output file name")
 parser.add_argument("--geometry",help="geometry for output",default="800x600")
 parser.add_argument("-c","--colormap",default="viridis",help="colormap to use")
+parser.add_argument("-C","--cleanup_data",default=False, action="store_true", help="apply quick cleanup on data where abs value is > 1.e20")
 parser.add_argument("-P","--projection",default="default",help="projection type",choices=("default", "lambert", "robinson", "mollweide", "polar", "orthographic"))
 P = parser.get_parameters()[0]
 
@@ -69,17 +74,17 @@ try:
 except Exception as err:
     # No mesh, trying to open the mesh file
     if P.mesh is None:
-        print(data.shape)
-        if data.shape[-1] == 777602:
+        if data.shape[-1] == 777602 and P.grid is None:
             P.mesh = os.path.join(sys.prefix,"share","e3smnex","e3sm_mesh_ne120.nc")
             warnings.warn("You did not provide a mesh file, but it appear you are trying to view an ne120, we are using the provided ne120 mesh file at {}".format(P.mesh))
-        elif data.shape[-1] == 48602:
+        elif data.shape[-1] == 48602 and P.grid is None:
             P.mesh = os.path.join(sys.prefix,"share","e3smnex","e3sm_mesh_ne30.nc")
             warnings.warn("You did not provide a mesh file, but it appear you are trying to view an ne30, we are using the provided ne30 mesh file at {}".format(P.mesh))
         else:
             P.mesh = "e3sm_mesh.nc"
     if not os.path.exists(P.mesh):
-        warnings.warn("could not get mesh from data and mesh file {} cannot be located we will try to generate the grid".format(P.mesh))
+        if P.grid is None:
+            warnings.warn("could not get mesh from data and mesh file {} cannot be located we will try to generate the grid".format(P.mesh))
         genGrid = True
     else:
         with cdms2.open(P.mesh) as f:
@@ -98,19 +103,90 @@ except Exception as err:
 if genGrid: # We need to generate the grid
     if P.grid is None or not os.path.exists(P.grid):
         raise RuntimeError("We need to generate the mesh, but could not open grid file {}".format(P.grid))
-    with cdms2.open(P.grid) as f:
-        if P.element_corners not in f.variables:
-            raise RuntimeError("Could not get elements corner variable ({}) from grid file {}".format(P.element_corners, P.grid))
-        ec = f(P.element_corners).filled()
-        if P.lats_variable not in f.variables:
-            raise RuntimeError("Could not get latitudes variable ({}) from grid file {}".format(P.lats_variable, P.grid))
-        lats = f(P.lats_variable).filled()
-        if P.lons_variable not in f.variables:
-            raise RuntimeError("Could not get longitudes variable ({}) from grid file {}".format(P.lons_variable, P.grid))
-        lons = f(P.lons_variable).filled()
 
-    print("Generating Mesh please be patient")
-    grid = e3sm_nex.generateGrid(ec, lats, lons)
+    # Load data from grid file
+    with cdms2.open(P.grid) as f:
+        if P.grid_type is None:
+            # Not passed by user we need to figure it
+            if P.element_corners is not None:
+                P.grid_type = "nex"
+            elif P.longitude_corners is not None:
+                P.grid_type = "mpas"
+            else: # Ok user gave us no hint via grid_type or corner variables...
+                if "element_corners" in f.variables:
+                    P.grid_type = "nex"
+                elif "grid_corner_lat" in f.variables and "grid_corner_lon" in f.variables:
+                    P.grid_type = "mpas"
+                else:
+                    raise RuntimeError("Could not determine automagically grid_file type for grid file {}".format(P.grid))
+
+        if P.grid_type == "nex":
+            if P.element_corners is None:
+                if "element_corners" in f.variables:
+                    P.element_corners = "element_corners"
+                else:
+                    RuntimeError("could not figure out name of element_corners variable in grid file {}".format(P.grid))
+
+            if P.element_corners not in f.variables:
+                raise RuntimeError("Could not get elements corner variable ({}) from grid file {}".format(P.element_corners, P.grid))
+            ec = f(P.element_corners).filled()
+
+            if P.lats_variable is None:
+                if "lat" in f.variables:
+                    P.lats_variable = "lat"
+                else:
+                    RuntimeError("could not figure out name of latitudes variable in grid file {}".format(P.grid))
+            if P.lats_variable not in f.variables:
+                raise RuntimeError("Could not get latitudes variable ({}) from grid file {}".format(P.lats_variable, P.grid))
+            lats = f(P.lats_variable).filled()
+            if P.lons_variable is None:
+                if "lon" in f.variables:
+                    P.lons_variable = "lon"
+                else:
+                    RuntimeError("could not figure out name of longitudes variable in grid file {}".format(P.grid))
+            if P.lons_variable not in f.variables:
+                raise RuntimeError("Could not get longitudes variable ({}) from grid file {}".format(P.lons_variable, P.grid))
+            lons = f(P.lons_variable).filled()
+            print("Generating NEX Mesh please be patient")
+            grid = e3sm_nex.generateNEXGrid(lats, lons, ec)
+        else:  # MPAS grid type
+            if P.lats_variable is None:
+                if "grid_center_lat" in f.variables:
+                    P.lats_variable = "grid_center_lat"
+                else:
+                    RuntimeError("could not figure out name of latitudes variable in grid file {}".format(P.grid))
+            if P.lats_variable not in f.variables:
+                raise RuntimeError("Could not get latitudes variable ({}) from grid file {}".format(P.lats_variable, P.grid))
+            lats = f(P.lats_variable).filled()
+            if P.lons_variable is None:
+                if "grid_center_lon" in f.variables:
+                    P.lons_variable = "grid_center_lon"
+                else:
+                    RuntimeError("could not figure out name of longtudes variable in grid file {}".format(P.grid))
+            if P.lons_variable not in f.variables:
+                raise RuntimeError("Could not get longitudes variable ({}) from grid file {}".format(P.lons_variable, P.grid))
+            lons = f(P.lons_variable).filled()
+
+            if P.latitude_corners is None:
+                if "grid_corner_lat" in f.variables:
+                    P.latitude_corners = "grid_corner_lat"
+                else:
+                    RuntimeError("could not figure out name of latitudes corners variable in grid file {}".format(P.grid))
+            if P.latitude_corners not in f.variables:
+                raise RuntimeError("Could not get latitudes corners variable ({}) from grid file {}".format(P.latitude_corners, P.grid))
+            lats_corners = f(P.latitude_corners).filled()
+            if P.longitude_corners is None:
+                if "grid_corner_lon" in f.variables:
+                    P.longitude_corners = "grid_corner_lon"
+                else:
+                    RuntimeError("could not figure out name of latitudes corners variable in grid file {}".format(P.grid))
+            if P.longitude_corners not in f.variables:
+                raise RuntimeError("Could not get longitudes corners variable ({}) from grid file {}".format(P.longitude_corners, P.grid))
+            lons_corners = f(P.longitude_corners).filled()
+            print("Generating MPAS Mesh please be patient")
+            grid = e3sm_nex.generateMPASGrid(lats, lons, lats_corners, lons_corners)
+
+
 
     print("Mesh generated storing as {} in {}".format(P.mesh_variable, P.mesh))
     axes = data.getAxisList()
@@ -155,6 +231,7 @@ gm.datawc_x2 = float(P.lon2)
 gm.datawc_y1 = float(P.lat1)
 gm.datawc_y2 = float(P.lat2)
 gm.mesh = P.show_mesh
+gm.missing = P.missing_color
 gm.projection = projections[P.projection]
 gm.colormap = P.colormap
 if P.levels is not None:
@@ -174,8 +251,10 @@ while user_key is not "q":
     if data.getLevel() is not None:
         kw["level"] = slice(level_index,level_index+1)
     plot_data = data(**kw)
-    while len(plot_data.shape)>1:
-        plot_data = plot_data[0]
+    if P.cleanup_data:
+        plot_data = cdms2.MV2.masked_greater(numpy.abs(plot_data),1.e20)
+    #while len(plot_data.shape)>1:
+    #    plot_data = plot_data[0]
     e3sm_nex.applyGrid(plot_data,grid)
     x.clear()
     x.plot(plot_data,gm)
