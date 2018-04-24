@@ -1,9 +1,10 @@
+{% set version = "0.0.2" %}
 package:
     name: e3sm_nex
-    version: 0.0.1
+    version: {{ version }}
 
 source:
-    git_rev: master
+    git_rev: {{ version }}
     git_url: git://github.com/cdat/e3sm_nex
 
 build:
