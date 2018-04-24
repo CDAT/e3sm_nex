@@ -1,1 +1,1 @@
-from api import generateNEXGrid, generateMPASGrid, applyGrid  # noqa
+from .api import generateNEXGrid, generateMPASGrid, applyGrid  # noqa

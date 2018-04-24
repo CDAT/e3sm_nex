@@ -1,4 +1,4 @@
-import core
+from . import core
 import numpy
 import cdp
 import cdms2
@@ -8,7 +8,7 @@ def generateNEXGrid(lats, lons, elements_corners):
     ncols = len(lats)
     mesh = numpy.zeros((ncols,2,4))
     params = []
-    for index in xrange(ncols):
+    for index in range(ncols):
         params.append(core.Input(index, elements_corners, lats, lons))
     meshes = cdp.cdp_run.multiprocess(core.corners, params)
     for i in range(ncols):

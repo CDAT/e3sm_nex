@@ -73,6 +73,8 @@ try:
     M = grid.getMesh()
 except Exception as err:
     # No mesh, trying to open the mesh file
+    print("MESH:",P.mesh)
+    print("GRID:",P.grid)
     if P.mesh is None:
         if data.shape[-1] == 777602 and P.grid is None:
             P.mesh = os.path.join(sys.prefix,"share","e3smnex","e3sm_mesh_ne120.nc")

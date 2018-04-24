@@ -13,7 +13,7 @@ for filename in filenames:
                     f.write(chunk)
 
 
-Version="0.0.1"
+Version="0.0.2"
 
 setup (name = "e3sm_nex",
        author="AIMS Team",
