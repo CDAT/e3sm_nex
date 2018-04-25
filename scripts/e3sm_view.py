@@ -203,8 +203,10 @@ else:
     output_name = P.output
 if P.output_type == "nc":
     data = e3sm_nex.applyGrid(data(),grid)
-    with cdms2.open(output_name,"w"):
-        cdms2.write(data)
+    if output_name[-3:].lower() not in [".nc","cdf"]:
+        output_name += ".nc"
+    with cdms2.open(output_name,"w") as fw:
+        fw.write(data)
 
 width, height = P.geometry.split("x")
 width = int(width)
