@@ -5,6 +5,25 @@ import cdms2
 import MV2
 
 def generateNEXGrid(lats, lons, elements_corners):
+    """Generates NEx grid from latitudes, longitudes and elements corners
+
+    :Example:
+        .. doctest:: api_generateNEXGrid
+
+            >>> grid = generateNEXGrid(lats, lons, elements_corners)
+
+    :param lats: 1D pure numpy array containing latitudes of each column
+    :type lats: `numpy.ndarray`_
+
+    :param lons: 1D pure numpy array containing longitudes of each column
+    :type lons: `numpy.ndarray`_
+
+    :param elements_corners: 2D pure numpy array containing latitudes centers (grid_size, nvertices)
+    :type lats_corners: `numpy.ndarray`_
+
+    :return: A cdms generic grid object representation of the nex grid
+    :rtype: `cdms2.gengrid.TransientGenericGrid`_
+    """
     ncols = len(lats)
     mesh = numpy.zeros((ncols,2,4))
     params = []
@@ -32,7 +51,31 @@ def rads2degrees(data, force=False):
     return data
 
 def generateMPASGrid(lats, lons, lats_corners, lons_corners, delta=180.):
+    """Generates MPAS grid from latitudes, longitudes, latitudes corners, longitude_corners
 
+    :Example:
+        .. doctest:: api_generateMPASGrid
+
+            >>> grid = generateMPASGrid(lats, lons, lats_corners, lons_corners)
+
+    :param lats: 1D pure numpy array containing latitudes centers
+    :type lats: `numpy.ndarray`_
+
+    :param lons: 1D pure numpy array containing longitudes centers
+    :type lons: `numpy.ndarray`_
+
+    :param lats_corners: 2D pure numpy array containing latitudes centers (grid_size, nvertices)
+    :type lats_corners: `numpy.ndarray`_
+
+    :param lons_corners: 2D pure numpy array containing longitudes centers (grid_size, nvertices)
+    :type lons: `numpy.ndarray`_
+
+    :param delta: delta between longitude for which we assume `wrapping` needs to be done
+    :type delta: `float`_
+
+    :return: A cdms generic grid object representation of the mpas grid
+    :rtype: `cdms2.gengrid.TransientGenericGrid`_
+    """
     lats = rads2degrees(lats)
     lons = rads2degrees(lons)
     lats_corners = rads2degrees(lats_corners)
@@ -68,6 +111,23 @@ def generateMPASGrid(lats, lons, lats_corners, lons_corners, delta=180.):
 
 
 def applyGrid(data,grid):
+    """Applies grid to data
+
+    :Example:
+        .. doctest:: api_applyGrid
+
+            >>> grid = e3sm_nex.generateMPASGrid(lats, lons, lats_corners, lons_corners)
+            >>> data = e3sm_nex.applyGrid(data,grid)
+
+    :param data: cdms2.MV2 variable
+    :type data: `cdms2.tvariable.TransientVariable`_
+
+    :param grid: grid to apply to data
+    :type grid: `cdms2.gengrid.TransientGenericGrid`_
+
+    :return: Data with grid applied to it
+    :rtype: `cdms2.tvariable.TransientVariable`_
+    """
     if not isinstance(data,numpy.ndarray):
         raise RuntimeError("input data to e3smnex's applyGrid function must be numpy array")
 

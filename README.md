@@ -1,4 +1,5 @@
-# A set of tools to view E3SM data on native grids
+# Introduction
+A set of tools to view E3SM data on native grids
 
 Currently supports neX and MPAS native grids.
 
