@@ -10,13 +10,6 @@ E3SM Native Grid Tools
 
    README.md
 
-API
-===
-.. toctree::
-   :maxdepth: 0
-
-   API/api
-
 Jupyter Notebooks
 =================
 .. toctree::
@@ -26,3 +19,9 @@ Jupyter Notebooks
   Jupyter/E3SM_NE30_Native_Plotting_from_Previously_Generated_Mesh_File.ipynb
   Jupyter/E3SM_NE30_Native_Plotting.ipynb
 
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

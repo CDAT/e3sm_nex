@@ -46,18 +46,17 @@ release = u'0.0.2'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'nbsphinx',
-    'easydev.copybutton',
-              'sphinx.ext.coverage',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.ifconfig',
-              'sphinx.ext.extlinks',
-              'sphinx.ext.intersphinx',
-              'sphinx.ext.graphviz',
-              'sphinx.ext.napoleon',
+    # 'easydev.copybutton',
+    #          'sphinx.ext.extlinks',
+    #          'sphinx.ext.graphviz',
+    #          'sphinx.ext.napoleon',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -94,8 +93,8 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 #
 html_theme = 'agogo'
-import easydev
-html_theme_path = [easydev.get_path_sphinx_themes()]
+#import easydev
+#html_theme_path = [easydev.get_path_sphinx_themes()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
