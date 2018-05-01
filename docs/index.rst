@@ -10,6 +10,14 @@ E3SM Native Grid Tools
 
    README.md
 
+
+API
+===
+.. toctree::
+   :maxdepth: 0
+
+   API/api.rst
+
 Jupyter Notebooks
 =================
 .. toctree::

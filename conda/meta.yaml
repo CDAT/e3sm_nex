@@ -4,7 +4,7 @@ package:
     version: {{ version }}
 
 source:
-    git_rev: {{ version }}
+    git_rev: master
     git_url: git://github.com/cdat/e3sm_nex
 
 build:
