@@ -1,3 +1,5 @@
+import os
+os.environ["UVCDAT_ANONYMOUS_LOG"] = "False"
 from recommonmark.parser import CommonMarkParser
 
 source_parsers = {
