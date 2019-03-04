@@ -1,4 +1,4 @@
-{% set version = "0.0.2" %}
+{% set version = "1.0.0" %}
 package:
     name: e3sm_nex
     version: {{ version }}
@@ -9,15 +9,16 @@ source:
 
 build:
   number: 0
+  noarch: python
+  script: python setup.py install
  
 requirements:
   build:
-    - python {{ python }}
+    - python
     - setuptools
     - requests
   run:
-    - python {{ python }}
-    - cdms2
+    - python
     - vcs
 
 about:
