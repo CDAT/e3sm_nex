@@ -15,15 +15,25 @@ Support for both OSX and Linux and both Python 2.7 or Python 3.6
 to add to an existing environment
 
 ```
-conda install -c conda-forge -c cdat e3sm_nex
+conda install -c cdat/label/v81 -c conda-forge e3sm_nex
+```
+ or
+
+```
+conda install -c cdat/label/nightly -c conda-forge e3sm_nex
 ```
 
 To create a self-contained env:
 
 ```
-conda create -n e3sm_view -c conda-forge -c cdat
+conda create -n e3sm_view -c cdat/label/v81 -c conda-forge
 ```
 
+or
+
+```
+conda create -n e3sm_view -c cdat/label/nightly -c conda-forge
+```
 ## e3sm_view tool
 
 ### Quick example
